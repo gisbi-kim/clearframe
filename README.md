@@ -1,6 +1,6 @@
-# Clearframe
+# Video Viewer
 
-[Open the player](https://gisbi-kim.github.io/clearframe/)
+[Open the player](https://gisbi-kim.github.io/video-viewer/)
 
 A dependency-free local video viewer. Controls stay below the video, including in fullscreen.
 
