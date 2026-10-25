@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="A private, local video player with controls that never cover your video.">
+<title>Clearframe · Local video player</title>
+<style>
+:root{color-scheme:dark;--bg:#101214;--panel:#1b1e22;--line:#343940;--muted:#a3abb6;--accent:#c7ef8b}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#f2f3f5;font:14px system-ui,sans-serif}button,input,select{font:inherit}button,select,input[type=number]{border:1px solid var(--line);border-radius:8px;background:#262b30;color:inherit;padding:9px 12px}button{cursor:pointer}button:hover{background:#383f46}button:disabled{opacity:.4;cursor:default}:focus-visible{outline:2px solid var(--accent);outline-offset:3px}header{max-width:1440px;margin:auto;padding:22px 28px;display:flex;align-items:center;gap:14px}header strong{font-size:23px;letter-spacing:-1px}header small{color:var(--muted)}.badge{margin-left:auto;color:var(--accent);font-size:12px}main{max-width:1440px;margin:auto;padding:0 28px 24px}.player{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}.stage{position:relative;background:#08090a;min-height:220px;height:clamp(240px,60vh,760px);display:flex;align-items:center;justify-content:center;overflow:hidden;flex:1}video{display:block;width:100%;height:100%;object-fit:contain;min-height:0}video[hidden]{display:none}.empty{text-align:center;padding:24px}.empty h1{font-size:30px;font-weight:550;letter-spacing:-1px;margin:16px 0}.empty p{color:var(--muted);line-height:1.8}.primary{background:var(--accent);color:#18200d;border-color:var(--accent);font-weight:650}.primary:hover{background:#daf5b1}.film{font-size:44px;color:var(--accent)}.controls{flex-shrink:0;padding:16px 22px 18px;border-top:1px solid var(--line)}.meta,.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.meta{justify-content:space-between;margin-bottom:8px}.filename{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%;font-weight:550}.clock{font:13px ui-monospace,monospace;color:var(--muted);font-variant-numeric:tabular-nums}input[type=range]{accent-color:var(--accent);cursor:pointer}#seek{width:100%;margin:8px 0 18px;height:20px}.spacer{flex:1}.group{display:flex;gap:8px;align-items:center}label{color:var(--muted);font-size:12px}#step,#jump{width:90px}#volume{width:85px}footer{display:flex;gap:18px;justify-content:space-between;flex-wrap:wrap;margin-top:15px;color:var(--muted);font-size:12px;line-height:1.9}kbd{border:1px solid #41464d;border-radius:4px;padding:2px 5px;color:#e0e4e9}#status{color:var(--accent);margin:12px 0 0;min-height:20px;font-size:12px}.player:fullscreen{border:0;border-radius:0;width:100vw;height:100dvh}.player:fullscreen .stage{height:auto;min-height:0}.dragging{outline:3px solid var(--accent)}.subrow{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}.hint{font-size:12px;color:var(--muted)}@media(max-width:700px){header{padding:16px}header small{display:none}main{padding:0 10px 14px}.controls{padding:12px}.stage{height:42vh;min-height:160px}.spacer{display:none}.row{gap:10px}.group{gap:6px}button,select,input[type=number]{padding:8px}.filename{max-width:55%}footer{padding:0 5px}.player:fullscreen .controls{max-height:55dvh;overflow:auto}}
+</style></head>
+<body>
+<header><strong>▣ Clearframe</strong><small>Keep the whole picture.</small><span class="badge">● LOCAL ONLY · 업로드 없음</span></header>
+<main><section class="player" id="player" aria-label="Video player">
+<div class="stage" id="stage">
+<video id="video" playsinline preload="metadata" hidden tabindex="0" aria-label="영상 화면"></video>
+<div class="empty" id="empty"><div class="film">▣</div><h1>영상만, 온전히.</h1><p>로컬 영상을 끌어놓거나 파일을 선택해.<br>조절바는 언제나 영상 아래에 있어.</p><button class="primary" id="openEmpty">영상 열기</button><p class="hint">MP4 · WebM · 브라우저가 지원하는 영상</p></div>
+</div>
+<div class="controls">
+<div class="meta"><span class="filename" id="filename">선택한 영상 없음</span><output class="clock" id="clock">00:00.000 / 00:00.000</output></div>
+<input id="seek" type="range" min="0" max="0" step="0.001" value="0" aria-label="재생 위치" disabled>
+<div class="row">
+<div class="group"><button id="back" data-media aria-label="설정 시간만큼 뒤로" disabled>←</button><button id="play" class="primary" data-media disabled>재생</button><button id="forward" data-media aria-label="설정 시간만큼 앞으로" disabled>→</button></div>
+<div class="group"><label for="speed">배속</label><select id="speed" aria-label="배속"><option>0.25</option><option>0.5</option><option>0.75</option><option selected>1</option><option>1.25</option><option>1.5</option><option>2</option><option>3</option><option>4</option></select><span class="hint">×</span></div>
+<div class="group"><button id="mute" aria-label="음소거">음소거</button><input id="volume" type="range" min="0" max="1" step=".01" value="1" aria-label="음량"></div>
+<span class="spacer"></span><button id="open">파일 열기</button><button id="fullscreen">전체화면</button>
+</div>
+<div class="row subrow">
+<div class="group"><label for="step">← → 이동 간격</label><input id="step" type="number" min="0.05" max="30" step="0.01" value="1"><span class="hint">초</span></div>
+<div class="group"><label for="jump">위치 이동</label><input id="jump" type="number" min="0" step="0.01" value="0"><span class="hint">초</span><button id="go" data-media disabled>이동</button></div>
+<label class="group"><input id="loop" type="checkbox">반복 재생</label>
+<span class="hint">화살표 이동 시 일시정지 유지 · 0.05–30초</span>
+</div>
+<p id="status" role="status" aria-live="polite">파일은 기기 안에서만 재생돼. 서버로 전송되지 않아.</p>
+</div></section>
+<footer><span><kbd>Space</kbd> 재생 / 정지 &nbsp; <kbd>←</kbd> <kbd>→</kbd> 정밀 이동 &nbsp; <kbd>F</kbd> 전체화면 &nbsp; <kbd>M</kbd> 음소거</span><span>시간 단위 탐색 · 실제 표시 프레임은 원본 FPS에 따라 달라져</span></footer>
+<input id="file" type="file" accept="video/*,.mp4,.m4v,.mov,.webm" hidden>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const video=$('video');
+const clamp=(n,min,max)=>Math.min(max,Math.max(min,n));
+const formatTime=seconds=>{const ms=Math.round(Math.max(0,Number.isFinite(seconds)?seconds:0)*1000);const h=Math.floor(ms/3600000),m=Math.floor(ms/60000)%60,s=Math.floor(ms/1000)%60;return(h?String(h).padStart(2,'0')+':':'')+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')+'.'+String(ms%1000).padStart(3,'0');};
+let url=null,ready=false,targetTime=null,raf=0;
+const status=text=>$('status').textContent=text;
+const update=()=>{const time=targetTime??video.currentTime;$('seek').value=String(time);$('clock').textContent=formatTime(time)+' / '+formatTime(video.duration);};
+const enable=value=>{ready=value;$('seek').disabled=!value;document.querySelectorAll('[data-media]').forEach(el=>el.disabled=!value);};
+const renderPlay=()=>{$('play').textContent=video.paused?'재생':'일시정지';};
+const seekTo=time=>{if(!ready)return;const next=clamp(time,0,video.duration);targetTime=next;video.currentTime=next;update();};
+const getStep=()=>{const raw=$('step').valueAsNumber;const n=clamp(Number.isFinite(raw)?raw:1,.05,30);$('step').value=String(n);return n;};
+const stepBy=direction=>{if(!ready)return;video.pause();seekTo((targetTime??video.currentTime)+direction*getStep());};
+const togglePlay=async()=>{if(!ready)return;if(video.paused){try{await video.play();}catch{status('재생할 수 없어. 지원되는 MP4(H.264/AAC) 파일인지 확인해.');}}else video.pause();};
+function loadFile(file){if(!file)return;video.pause();enable(false);targetTime=null;video.removeAttribute('src');video.load();if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(file);video.src=url;video.hidden=false;$('empty').hidden=true;$('filename').textContent=file.name;$('seek').value='0';$('clock').textContent='00:00.000 / 00:00.000';$('jump').value='0';status('영상을 여는 중…');video.load();}
+$('open').onclick=$('openEmpty').onclick=()=> $('file').click();
+$('file').onchange=event=>{loadFile(event.target.files[0]);event.target.value='';};
+video.addEventListener('loadedmetadata',()=>{if(!Number.isFinite(video.duration)||video.duration<=0){status('영상 길이를 읽지 못했어. 다른 파일을 선택해.');return;}enable(true);$('seek').max=String(video.duration);$('jump').max=String(video.duration);video.playbackRate=Number($('speed').value);status(video.videoWidth+' × '+video.videoHeight+' · '+formatTime(video.duration)+' · 로컬 재생 준비 완료');update();});
+video.addEventListener('error',()=>{enable(false);status('파일을 재생할 수 없어. 브라우저가 지원하는 MP4(H.264/AAC) 또는 WebM 파일을 열어줘.');});
+video.addEventListener('seeked',()=>{targetTime=null;update();});
+video.addEventListener('timeupdate',update);
+const tick=()=>{update();if(!video.paused)raf=requestAnimationFrame(tick);};
+video.addEventListener('play',()=>{renderPlay();cancelAnimationFrame(raf);tick();});
+video.addEventListener('pause',()=>{renderPlay();cancelAnimationFrame(raf);update();});
+video.addEventListener('ended',renderPlay);
+$('play').onclick=togglePlay;video.onclick=togglePlay;
+$('back').onclick=()=>stepBy(-1);$('forward').onclick=()=>stepBy(1);
+$('seek').oninput=e=>seekTo(Number(e.target.value));
+$('step').onchange=getStep;
+$('go').onclick=()=>{const n=$('jump').valueAsNumber;if(Number.isFinite(n)){video.pause();seekTo(n);}};
+$('jump').onkeydown=e=>{if(e.key==='Enter')$('go').click();};
+$('speed').onchange=()=>{video.playbackRate=Number($('speed').value);};
+$('loop').onchange=()=>{video.loop=$('loop').checked;};
+const mute=()=>{video.muted=!video.muted;};
+$('mute').onclick=mute;
+$('volume').oninput=e=>{video.volume=Number(e.target.value);video.muted=false;};
+video.addEventListener('volumechange',()=>{$('mute').textContent=video.muted?'소리 켜기':'음소거';$('mute').setAttribute('aria-pressed',String(video.muted));});
+const fullscreen=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await $('player').requestFullscreen();}catch{status('이 브라우저에서는 전체화면을 사용할 수 없어.');}};
+$('fullscreen').onclick=fullscreen;
+document.addEventListener('fullscreenchange',()=>{$('fullscreen').textContent=document.fullscreenElement?'전체화면 종료':'전체화면';});
+document.addEventListener('keydown',e=>{if(e.ctrlKey||e.altKey||e.metaKey||e.target.closest('input,select,textarea,[contenteditable=true]'))return;if(e.code==='Space'&&e.target.closest('button'))return;switch(e.code){case'Space':e.preventDefault();togglePlay();break;case'ArrowLeft':e.preventDefault();stepBy(-1);break;case'ArrowRight':e.preventDefault();stepBy(1);break;case'KeyF':e.preventDefault();fullscreen();break;case'KeyM':e.preventDefault();mute();break;}});
+document.addEventListener('dragover',e=>{e.preventDefault();$('player').classList.add('dragging');});
+document.addEventListener('dragleave',e=>{if(!e.relatedTarget)$('player').classList.remove('dragging');});
+document.addEventListener('drop',e=>{e.preventDefault();$('player').classList.remove('dragging');loadFile(e.dataTransfer.files[0]);});
+window.addEventListener('beforeunload',()=>{if(url)URL.revokeObjectURL(url);});
+</script></body></html>
